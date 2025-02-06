@@ -172,7 +172,7 @@ const scrapper = async () => {
   console.log(`👤 Following: ${following || "Not Found"}`);
 
   // Keep the browser open for debugging
-  await new Promise(resolve => setTimeout(resolve, 30000)); // Keeps browser open for 30 seconds before closing
+  await new Promise(resolve => setTimeout(resolve, 3000)); // Keeps browser open for 30 seconds before closing
 
   await browser.close();
 };
