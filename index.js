@@ -8,7 +8,6 @@ import * as cheerio from "cheerio";
 import fs from "fs";
 
 puppeteerExtra.use(StealthPlugin());
-
 const app = express();
 const PORT = process.env.PORT || 3000;
 const username = "im.osterx.in";
@@ -42,12 +41,20 @@ const scrapeInstagram = async (profileUrl) => {
     waitUntil: "networkidle2",
   });
 
+  // If still on login page, log in and save cookies
   if (page.url().includes("accounts/login")) {
     await page.waitForSelector('input[name="username"]', { visible: true });
     await page.type('input[name="username"]', username);
     await page.type('input[name="password"]', password);
     await page.click('button[type="submit"]');
     await page.waitForNavigation({ waitUntil: "networkidle2" });
+
+    // Handle potential 2FA if needed
+    if (page.url().includes("checkpoint")) {
+      console.log("2FA Required! Please enter the code...");
+      // You can add a manual input logic here, such as prompting for the code
+      await page.waitForTimeout(10000); // Adjust timeout as necessary
+    }
 
     const cookies = await page.cookies();
     fs.writeFileSync(cookiesFilePath, JSON.stringify(cookies, null, 2));
@@ -62,8 +69,19 @@ const scrapeInstagram = async (profileUrl) => {
   let followers = $("a[href$='/followers/'] > span").text().trim();
   let following = $("a[href$='/following/'] > span").text().trim();
 
+  // Handling post count and likes (assuming post is visible)
+  const postCount = $("header section span span").text().trim();
+  const firstPostLikes = await page.$eval("article div div div div a", (el) => el.innerText.trim());
+  const firstPostComments = await page.$eval("article div div div div a", (el) => el.innerText.trim());
+
   await browser.close();
-  return { followers: followers || "Not Found", following: following || "Not Found" };
+  return {
+    followers: followers || "Not Found",
+    following: following || "Not Found",
+    posts: postCount || "Not Found",
+    firstPostLikes: firstPostLikes || "Not Found",
+    firstPostComments: firstPostComments || "Not Found",
+  };
 };
 
 // POST endpoint to scrape Instagram profile
