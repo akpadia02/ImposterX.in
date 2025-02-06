@@ -15,7 +15,7 @@ const password = "imposter@15#12";
 const cookiesFilePath = "./instagram_cookies.json";
 
 // Enable CORS for all origins
-app.use(cors({ origin: "*" }));
+app.use(cors());
 app.use(express.json());
 
 const scrapeInstagram = async (profileUrl) => {
