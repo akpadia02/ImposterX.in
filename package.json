@@ -1,28 +1,24 @@
 {
-  "name": "selenium-scrapper",
+  "name": "instagram-scraper",
   "version": "1.0.0",
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js",
+    "vercel-build": "node index.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "dependencies": {
     "@sparticuz/chromium": "^132.0.0",
-    "@wdio/cli": "^9.7.2",
-    "@wdio/local-runner": "^9.7.2",
-    "@wdio/mocha-framework": "^9.7.2",
-    "@wdio/selenium-standalone-service": "^8.14.0",
+    "cheerio": "^1.0.0-rc.12",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
-    "puppeteer": "^24.2.0",
+    "fs-extra": "^11.2.0",
     "puppeteer-core": "^24.2.0",
     "puppeteer-extra": "^3.3.6",
-    "puppeteer-extra-plugin-stealth": "^2.11.2",
-    "selenium-webdriver": "^4.28.1"
+    "puppeteer-extra-plugin-stealth": "^2.11.2"
+  },
+  "engines": {
+    "node": "18.x"
   }
 }

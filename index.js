@@ -1,11 +1,13 @@
 import express from "express";
 import cors from "cors";
-import puppeteer from "puppeteer-extra";
+import puppeteer from "puppeteer-core";
+import chromium from "@sparticuz/chromium";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
+import puppeteerExtra from "puppeteer-extra";
 import * as cheerio from "cheerio";
 import fs from "fs";
 
-puppeteer.use(StealthPlugin());
+puppeteerExtra.use(StealthPlugin());
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -13,16 +15,17 @@ const username = "im.osterx.in";
 const password = "imposter@15#12";
 const cookiesFilePath = "./instagram_cookies.json";
 
-// Enable CORS and JSON body parsing
-app.use(cors());
+// Enable CORS for all origins
+app.use(cors({ origin: "*" }));
 app.use(express.json());
 
 const scrapeInstagram = async (profileUrl) => {
   const browser = await puppeteerExtra.launch({
     args: chromium.args,
     executablePath: await chromium.executablePath(),
-    headless: chromium.headless
+    headless: chromium.headless,
   });
+
   const page = await browser.newPage();
 
   await page.setUserAgent(
@@ -39,7 +42,7 @@ const scrapeInstagram = async (profileUrl) => {
     waitUntil: "networkidle2",
   });
 
-  if (page.url() !== "https://www.instagram.com/") {
+  if (page.url().includes("accounts/login")) {
     await page.waitForSelector('input[name="username"]', { visible: true });
     await page.type('input[name="username"]', username);
     await page.type('input[name="password"]', password);
@@ -55,7 +58,7 @@ const scrapeInstagram = async (profileUrl) => {
 
   const htmlContent = await page.content();
   const $ = cheerio.load(htmlContent);
-  
+
   let followers = $("a[href$='/followers/'] > span").text().trim();
   let following = $("a[href$='/following/'] > span").text().trim();
 
@@ -65,7 +68,7 @@ const scrapeInstagram = async (profileUrl) => {
 
 // POST endpoint to scrape Instagram profile
 app.post("/scrape", async (req, res) => {
-  const { profile } = req.body; // Accept profile URL from request body
+  const { profile } = req.body;
   if (!profile) {
     return res.status(400).json({ error: "Profile URL is required" });
   }
@@ -74,6 +77,7 @@ app.post("/scrape", async (req, res) => {
     const data = await scrapeInstagram(profile);
     res.json(data);
   } catch (error) {
+    console.error("Scraping Error:", error);
     res.status(500).json({ error: "Failed to scrape profile", details: error.message });
   }
 });
