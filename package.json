@@ -2,23 +2,18 @@
   "name": "instagram-scraper",
   "version": "1.0.0",
   "main": "index.js",
-  "type": "module",
   "scripts": {
     "start": "node index.js",
-    "vercel-build": "node index.js"
+    "vercel-build": "echo 'Building...'"
   },
   "dependencies": {
-    "@sparticuz/chromium": "^132.0.0",
-    "cheerio": "^1.0.0-rc.12",
+    "express": "^4.18.2",
     "cors": "^2.8.5",
-    "dotenv": "^16.4.7",
-    "express": "^4.21.2",
-    "fs-extra": "^11.2.0",
-    "puppeteer-core": "^24.2.0",
+    "puppeteer-core": "^21.0.0",
+    "@sparticuz/chromium": "^110.0.0",
     "puppeteer-extra": "^3.3.6",
-    "puppeteer-extra-plugin-stealth": "^2.11.2"
-  },
-  "engines": {
-    "node": "18.x"
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
+    "cheerio": "^1.0.0-rc.12",
+    "fs": "0.0.1-security"
   }
 }

@@ -12,7 +12,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const username = "im.osterx.in";
 const password = "imposter@15#12";
-const cookiesFilePath = "./instagram_cookies.json";
+const cookiesFilePath = "./instagram_cookies.json"; // Use /tmp for serverless environments
 
 // Enable CORS for all origins
 app.use(cors());
@@ -103,3 +103,5 @@ app.post("/scrape", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
+
+export default app;
