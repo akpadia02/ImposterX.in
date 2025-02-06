@@ -1,93 +1,5 @@
-// import puppeteer from "puppeteer-extra";
-// import StealthPlugin from "puppeteer-extra-plugin-stealth";
-// import * as cheerio from "cheerio";
-// import fs from "fs";
-
-// puppeteer.use(StealthPlugin());
-
-// const username = "imposterx.com.in";
-// const password = "imposter@15#12";
-// const cookiesFilePath = "./instagram_cookies.json";
-
-// const scrapper = async () => {
-//   const browser = await puppeteer.launch({ headless: false });
-//   const page = await browser.newPage();
-
-//   await page.setUserAgent(
-//     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-//   );
-//   await page.setViewport({ width: 1280, height: 800 });
-
-//   // Load cookies if available
-//   if (fs.existsSync(cookiesFilePath)) {
-//     const cookies = JSON.parse(fs.readFileSync(cookiesFilePath, "utf8"));
-//     await page.setCookie(...cookies);
-//     console.log("✅ Loaded cookies.");
-//   }
-
-//   await page.goto("https://www.instagram.com/accounts/login/", {
-//     waitUntil: "networkidle2",
-//   });
-
-//   // Check if already logged in
-//   if (page.url() === "https://www.instagram.com/") {
-//     console.log("✅ Already logged in!");
-//   } else {
-//     // Login process
-//     await page.waitForSelector('input[name="username"]', { visible: true });
-//     await page.type('input[name="username"]', username);
-//     await page.type('input[name="password"]', password);
-//     await page.click('button[type="submit"]');
-
-//     // Wait to check if 2FA is triggered
-//     await new Promise(resolve => setTimeout(resolve, 5000));
-//     if (page.url().includes("challenge") || page.url().includes("two_factor")) {
-//       console.log("🔒 2FA DETECTED! Please enter the verification code manually in the browser.");
-
-//       // Wait for user input on 2FA screen (up to 2 minutes)
-//       await page.waitForFunction(
-//         () => document.querySelector('input[name="verificationCode"]') === null,
-//         { timeout: 120000 } // 2 minutes timeout
-//       );
-
-//       console.log("✅ 2FA verification successful. Continuing...");
-//     } else {
-//       console.log("✅ Logged in without 2FA.");
-//     }
-
-//     // Save cookies after successful login
-//     const cookies = await page.cookies();
-//     fs.writeFileSync(cookiesFilePath, JSON.stringify(cookies, null, 2));
-//     console.log("✅ Cookies saved.");
-//   }
-
-//   // Navigate to target profile
-//   const url = "https://www.instagram.com/gdg_rbu/";
-//   await page.goto(url, { waitUntil: "networkidle2" });
-
-//   // Wait for profile page
-//   await page.waitForSelector("body");
-
-//   // Get page content
-//   const htmlContent = await page.content();
-
-//   // Load into Cheerio
-//   const $ = cheerio.load(htmlContent);
-
-//   // Extract followers & following count
-//   let followers = $("a[href$='/followers/'] > span").text().trim();
-//   let following = $("a[href$='/following/'] > span").text().trim();
-
-//   console.log(`👥 Followers: ${followers || "Not Found"}`);
-//   console.log(`👤 Following: ${following || "Not Found"}`);
-
-//   // Keep the browser open for debugging
-//   await new Promise(resolve => setTimeout(resolve, 30000)); // Keeps browser open for 30 seconds before closing
-
-//   await browser.close();
-// };
-
-// scrapper();
+import express from "express";
+import cors from "cors";
 import puppeteer from "puppeteer-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import * as cheerio from "cheerio";
@@ -95,12 +7,18 @@ import fs from "fs";
 
 puppeteer.use(StealthPlugin());
 
+const app = express();
+const PORT = process.env.PORT || 3000;
 const username = "im.osterx.in";
 const password = "imposter@15#12";
 const cookiesFilePath = "./instagram_cookies.json";
 
-const scrapper = async () => {
-  const browser = await puppeteer.launch({ headless: false });
+// Enable CORS and JSON body parsing
+app.use(cors());
+app.use(express.json());
+
+const scrapeInstagram = async (profileUrl) => {
+  const browser = await puppeteer.launch({ headless: true });
   const page = await browser.newPage();
 
   await page.setUserAgent(
@@ -108,73 +26,54 @@ const scrapper = async () => {
   );
   await page.setViewport({ width: 1280, height: 800 });
 
-  // Load cookies if available
   if (fs.existsSync(cookiesFilePath)) {
     const cookies = JSON.parse(fs.readFileSync(cookiesFilePath, "utf8"));
     await page.setCookie(...cookies);
-    console.log("✅ Loaded cookies.");
   }
 
   await page.goto("https://www.instagram.com/accounts/login/", {
     waitUntil: "networkidle2",
   });
 
-  // Check if already logged in
-  if (page.url() === "https://www.instagram.com/") {
-    console.log("✅ Already logged in!");
-  } else {
-    // Login process
+  if (page.url() !== "https://www.instagram.com/") {
     await page.waitForSelector('input[name="username"]', { visible: true });
     await page.type('input[name="username"]', username);
     await page.type('input[name="password"]', password);
     await page.click('button[type="submit"]');
+    await page.waitForNavigation({ waitUntil: "networkidle2" });
 
-    // Wait to check if 2FA is triggered
-    await new Promise(resolve => setTimeout(resolve, 5000));
-    if (page.url().includes("challenge") || page.url().includes("two_factor")) {
-      console.log("🔒 2FA DETECTED! Please enter the verification code manually in the browser.");
-
-      // Wait for user input on 2FA screen (up to 2 minutes)
-      await page.waitForFunction(
-        () => document.querySelector('input[name="verificationCode"]') === null,
-        { timeout: 120000 } // 2 minutes timeout
-      );
-
-      console.log("✅ 2FA verification successful. Continuing...");
-    } else {
-      console.log("✅ Logged in without 2FA.");
-    }
-
-    // Save cookies after successful login
     const cookies = await page.cookies();
     fs.writeFileSync(cookiesFilePath, JSON.stringify(cookies, null, 2));
-    console.log("✅ Cookies saved.");
   }
 
-  // Navigate to target profile
-  const url = "https://www.instagram.com/gdg_rbu/";
-  await page.goto(url, { waitUntil: "networkidle2" });
-
-  // Wait for profile page
+  await page.goto(profileUrl, { waitUntil: "networkidle2" });
   await page.waitForSelector("body");
 
-  // Get page content
   const htmlContent = await page.content();
-
-  // Load into Cheerio
   const $ = cheerio.load(htmlContent);
-
-  // Extract followers & following count
+  
   let followers = $("a[href$='/followers/'] > span").text().trim();
   let following = $("a[href$='/following/'] > span").text().trim();
 
-  console.log(`👥 Followers: ${followers || "Not Found"}`);
-  console.log(`👤 Following: ${following || "Not Found"}`);
-
-  // Keep the browser open for debugging
-  await new Promise(resolve => setTimeout(resolve, 3000)); // Keeps browser open for 30 seconds before closing
-
   await browser.close();
+  return { followers: followers || "Not Found", following: following || "Not Found" };
 };
 
-scrapper();
+// POST endpoint to scrape Instagram profile
+app.post("/scrape", async (req, res) => {
+  const { profile } = req.body; // Accept profile URL from request body
+  if (!profile) {
+    return res.status(400).json({ error: "Profile URL is required" });
+  }
+
+  try {
+    const data = await scrapeInstagram(profile);
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to scrape profile", details: error.message });
+  }
+});
+
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
+});
