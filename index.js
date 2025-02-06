@@ -18,7 +18,11 @@ app.use(cors());
 app.use(express.json());
 
 const scrapeInstagram = async (profileUrl) => {
-  const browser = await puppeteer.launch({ headless: true });
+  const browser = await puppeteerExtra.launch({
+    args: chromium.args,
+    executablePath: await chromium.executablePath(),
+    headless: chromium.headless
+  });
   const page = await browser.newPage();
 
   await page.setUserAgent(
